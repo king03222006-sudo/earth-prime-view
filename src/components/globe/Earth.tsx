@@ -3,11 +3,11 @@ import { useFrame, useLoader } from "@react-three/fiber";
 import * as THREE from "three";
 import { TextureLoader } from "three";
 
-const EARTH_DAY = "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
-const EARTH_NIGHT = "https://unpkg.com/three-globe/example/img/earth-night.jpg";
-const EARTH_TOPO = "https://unpkg.com/three-globe/example/img/earth-topology.png";
-const EARTH_WATER = "https://unpkg.com/three-globe/example/img/earth-water.png";
-const CLOUDS = "https://unpkg.com/three-globe/example/img/clouds.png";
+const EARTH_DAY = "https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-blue-marble.jpg";
+const EARTH_NIGHT = "https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-night.jpg";
+const EARTH_TOPO = "https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-topology.png";
+const EARTH_WATER = "https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-water.png";
+const CLOUDS = "https://threejs.org/examples/textures/planets/earth_clouds_1024.png";
 
 // Custom shader blending day/night based on sun direction
 const earthVertexShader = /* glsl */ `
