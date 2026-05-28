@@ -85,12 +85,26 @@ const atmosphereFragmentShader = /* glsl */ `
   varying vec3 vNormal;
   varying vec3 vWorldPos;
   uniform vec3 glowColor;
+  uniform vec3 dawnColor;
+  uniform vec3 sunDirection;
   uniform float power;
   uniform float intensity;
   void main() {
+    vec3 worldN = normalize(vWorldPos);
     vec3 viewDir = normalize(cameraPosition - vWorldPos);
-    float fres = pow(1.0 - max(dot(viewDir, normalize(vWorldPos)), 0.0), power);
-    gl_FragColor = vec4(glowColor, 1.0) * fres * intensity;
+    float fres = pow(1.0 - max(dot(viewDir, worldN), 0.0), power);
+
+    float sunDot = dot(worldN, normalize(sunDirection));
+    // refractive scattering: brightest where sunlight grazes the limb
+    float scatter = smoothstep(-0.35, 0.6, sunDot);
+    // narrow warm dawn band exactly at terminator
+    float dawn = smoothstep(-0.05, 0.05, sunDot) * (1.0 - smoothstep(0.05, 0.25, sunDot));
+
+    vec3 col = mix(glowColor * 0.15, glowColor, scatter);
+    col += dawnColor * dawn * 0.35;
+
+    float alpha = fres * intensity * (0.25 + scatter * 0.85);
+    gl_FragColor = vec4(col, 1.0) * alpha;
   }
 `;
 
@@ -127,26 +141,32 @@ export function Earth({ radius = 1, sunDirection }: { radius?: number; sunDirect
 
   const atmoUniforms = useMemo(
     () => ({
-      glowColor: { value: new THREE.Color("#4ab3ff") },
-      power: { value: 3.0 },
-      intensity: { value: 1.4 },
+      glowColor: { value: new THREE.Color("#2a5a8c") },
+      dawnColor: { value: new THREE.Color("#ff8a4a") },
+      sunDirection: { value: sunDirection.clone() },
+      power: { value: 3.4 },
+      intensity: { value: 0.55 },
     }),
-    [],
+    [sunDirection],
   );
 
   const innerAtmoUniforms = useMemo(
     () => ({
-      glowColor: { value: new THREE.Color("#7cc3ff") },
-      power: { value: 5.5 },
-      intensity: { value: 0.9 },
+      glowColor: { value: new THREE.Color("#5a9ed6") },
+      dawnColor: { value: new THREE.Color("#ffb070") },
+      sunDirection: { value: sunDirection.clone() },
+      power: { value: 6.5 },
+      intensity: { value: 0.4 },
     }),
-    [],
+    [sunDirection],
   );
 
   useFrame((_, dt) => {
     if (earthRef.current) earthRef.current.rotation.y += dt * 0.03;
     if (cloudsRef.current) cloudsRef.current.rotation.y += dt * 0.038;
     uniforms.sunDirection.value.copy(sunDirection);
+    atmoUniforms.sunDirection.value.copy(sunDirection);
+    innerAtmoUniforms.sunDirection.value.copy(sunDirection);
   });
 
   return (
