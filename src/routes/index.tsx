@@ -1,29 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { GlobeClient } from "@/components/globe/GlobeClient";
+import { HUD } from "@/components/globe/HUD";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Orbital Command — Global Threat Monitor" },
+      { name: "description", content: "Cinematic real-time 3D Earth visualization for global incident, route and zone monitoring." },
+      { property: "og:title", content: "Orbital Command — Global Threat Monitor" },
+      { property: "og:description", content: "Cinematic real-time 3D Earth visualization for global incident monitoring." },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="relative h-screen w-screen overflow-hidden bg-background text-foreground">
+      <GlobeClient />
+      <HUD />
+    </main>
   );
 }
