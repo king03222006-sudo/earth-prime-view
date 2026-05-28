@@ -1,8 +1,7 @@
 import { Suspense, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
-import { EffectComposer, Bloom, Vignette, ChromaticAberration } from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
+import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { Earth } from "./Earth";
 import { Markers } from "./Markers";
@@ -78,7 +77,6 @@ export default function GlobeScene() {
         />
         <EffectComposer multisampling={0}>
           <Bloom mipmapBlur intensity={1.2} luminanceThreshold={0.25} luminanceSmoothing={0.3} radius={0.85} />
-          <ChromaticAberration offset={[0.0006, 0.0006]} blendFunction={BlendFunction.NORMAL} radialModulation={false} modulationOffset={0} />
           <Vignette eskil={false} offset={0.15} darkness={0.85} />
         </EffectComposer>
       </Suspense>
