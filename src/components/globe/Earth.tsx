@@ -7,7 +7,7 @@ const EARTH_DAY = "https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/e
 const EARTH_NIGHT = "https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-night.jpg";
 const EARTH_TOPO = "https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-topology.png";
 const EARTH_WATER = "https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-water.png";
-const CLOUDS = "https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/clouds.png";
+const CLOUDS = "https://threejs.org/examples/textures/planets/earth_clouds_1024.png";
 
 // Custom shader blending day/night based on sun direction
 const earthVertexShader = /* glsl */ `
