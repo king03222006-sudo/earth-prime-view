@@ -141,20 +141,24 @@ export function Earth({ radius = 1, sunDirection }: { radius?: number; sunDirect
 
   const atmoUniforms = useMemo(
     () => ({
-      glowColor: { value: new THREE.Color("#4ab3ff") },
-      power: { value: 3.0 },
-      intensity: { value: 1.4 },
+      glowColor: { value: new THREE.Color("#2a5a8c") },
+      dawnColor: { value: new THREE.Color("#ff8a4a") },
+      sunDirection: { value: sunDirection.clone() },
+      power: { value: 3.4 },
+      intensity: { value: 0.55 },
     }),
-    [],
+    [sunDirection],
   );
 
   const innerAtmoUniforms = useMemo(
     () => ({
-      glowColor: { value: new THREE.Color("#7cc3ff") },
-      power: { value: 5.5 },
-      intensity: { value: 0.9 },
+      glowColor: { value: new THREE.Color("#5a9ed6") },
+      dawnColor: { value: new THREE.Color("#ffb070") },
+      sunDirection: { value: sunDirection.clone() },
+      power: { value: 6.5 },
+      intensity: { value: 0.4 },
     }),
-    [],
+    [sunDirection],
   );
 
   useFrame((_, dt) => {
