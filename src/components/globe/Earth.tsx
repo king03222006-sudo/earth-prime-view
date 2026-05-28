@@ -85,12 +85,26 @@ const atmosphereFragmentShader = /* glsl */ `
   varying vec3 vNormal;
   varying vec3 vWorldPos;
   uniform vec3 glowColor;
+  uniform vec3 dawnColor;
+  uniform vec3 sunDirection;
   uniform float power;
   uniform float intensity;
   void main() {
+    vec3 worldN = normalize(vWorldPos);
     vec3 viewDir = normalize(cameraPosition - vWorldPos);
-    float fres = pow(1.0 - max(dot(viewDir, normalize(vWorldPos)), 0.0), power);
-    gl_FragColor = vec4(glowColor, 1.0) * fres * intensity;
+    float fres = pow(1.0 - max(dot(viewDir, worldN), 0.0), power);
+
+    float sunDot = dot(worldN, normalize(sunDirection));
+    // refractive scattering: brightest where sunlight grazes the limb
+    float scatter = smoothstep(-0.35, 0.6, sunDot);
+    // narrow warm dawn band exactly at terminator
+    float dawn = smoothstep(-0.05, 0.05, sunDot) * (1.0 - smoothstep(0.05, 0.25, sunDot));
+
+    vec3 col = mix(glowColor * 0.15, glowColor, scatter);
+    col += dawnColor * dawn * 0.35;
+
+    float alpha = fres * intensity * (0.25 + scatter * 0.85);
+    gl_FragColor = vec4(col, 1.0) * alpha;
   }
 `;
 
