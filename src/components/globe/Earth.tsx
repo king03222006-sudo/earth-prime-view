@@ -162,8 +162,8 @@ export function Earth({ radius = 1, sunDirection }: { radius?: number; sunDirect
   );
 
   useFrame((_, dt) => {
-    if (earthRef.current) earthRef.current.rotation.y += dt * 0.03;
-    if (cloudsRef.current) cloudsRef.current.rotation.y += dt * 0.038;
+    // clouds drift slightly faster than the earth spin handled by the parent group
+    if (cloudsRef.current) cloudsRef.current.rotation.y += dt * 0.008;
     uniforms.sunDirection.value.copy(sunDirection);
     atmoUniforms.sunDirection.value.copy(sunDirection);
     innerAtmoUniforms.sunDirection.value.copy(sunDirection);

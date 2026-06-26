@@ -9,6 +9,20 @@ import { Routes } from "./Routes";
 import { Satellites } from "./Satellites";
 import { Nebula } from "./Nebula";
 
+function SpinningEarth({ radius, sunDirection }: { radius: number; sunDirection: THREE.Vector3 }) {
+  const spinRef = useRef<THREE.Group>(null!);
+  useFrame((_, dt) => {
+    if (spinRef.current) spinRef.current.rotation.y += dt * 0.03;
+  });
+  return (
+    <group ref={spinRef}>
+      <Earth radius={radius} sunDirection={sunDirection} />
+      <Routes radius={radius} />
+      <Markers radius={radius} />
+    </group>
+  );
+}
+
 function Sun({ sunRef }: { sunRef: React.MutableRefObject<THREE.Vector3> }) {
   const lightRef = useRef<THREE.DirectionalLight>(null!);
   useFrame(({ clock }) => {
@@ -59,9 +73,7 @@ export default function GlobeScene() {
         <Nebula />
         <Stars radius={60} depth={40} count={9000} factor={3.2} saturation={0.2} fade speed={0.4} />
         <Stars radius={30} depth={20} count={3000} factor={1.8} saturation={0} fade speed={0.2} />
-        <Earth radius={radius} sunDirection={sunRef.current} />
-        <Routes radius={radius} />
-        <Markers radius={radius} />
+        <SpinningEarth radius={radius} sunDirection={sunRef.current} />
         <Satellites count={120} radius={radius} />
         <CinematicCamera />
         <OrbitControls
