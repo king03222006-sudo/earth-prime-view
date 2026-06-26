@@ -73,9 +73,7 @@ export default function GlobeScene() {
         <Nebula />
         <Stars radius={60} depth={40} count={9000} factor={3.2} saturation={0.2} fade speed={0.4} />
         <Stars radius={30} depth={20} count={3000} factor={1.8} saturation={0} fade speed={0.2} />
-        <Earth radius={radius} sunDirection={sunRef.current} />
-        <Routes radius={radius} />
-        <Markers radius={radius} />
+        <SpinningEarth radius={radius} sunDirection={sunRef.current} />
         <Satellites count={120} radius={radius} />
         <CinematicCamera />
         <OrbitControls
