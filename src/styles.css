@@ -1,5 +1,6 @@
 @import "tailwindcss" source(none);
 @source "../src";
+@source inline("text-hazard-rain text-hazard-flood text-hazard-landslide text-hazard-cyclone text-hazard-fire text-hazard-lightning text-hazard-tsunami text-hazard-heat text-hazard-quake text-hazard-snow");
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -59,6 +60,25 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-panel: var(--panel);
+  --color-panel-foreground: var(--panel-foreground);
+  --color-panel-muted: var(--panel-muted);
+  --color-panel-border: var(--panel-border);
+  --color-space: var(--space);
+  --color-trust: var(--trust);
+  --color-trust-foreground: var(--trust-foreground);
+  --color-trust-border: var(--trust-border);
+  --color-warning: var(--warning);
+  --color-hazard-rain: var(--hazard-rain);
+  --color-hazard-flood: var(--hazard-flood);
+  --color-hazard-landslide: var(--hazard-landslide);
+  --color-hazard-cyclone: var(--hazard-cyclone);
+  --color-hazard-fire: var(--hazard-fire);
+  --color-hazard-lightning: var(--hazard-lightning);
+  --color-hazard-tsunami: var(--hazard-tsunami);
+  --color-hazard-heat: var(--hazard-heat);
+  --color-hazard-quake: var(--hazard-quake);
+  --color-hazard-snow: var(--hazard-snow);
 }
 
 :root {
@@ -95,6 +115,25 @@
   --sidebar-accent-foreground: oklch(0.96 0.01 200);
   --sidebar-border: oklch(0.25 0.03 230);
   --sidebar-ring: oklch(0.75 0.15 180);
+  --panel: oklch(0.12 0.026 250 / 88%);
+  --panel-foreground: oklch(0.95 0.012 210);
+  --panel-muted: oklch(0.17 0.03 245 / 72%);
+  --panel-border: oklch(0.72 0.05 215 / 14%);
+  --space: oklch(0.045 0.018 265);
+  --trust: oklch(0.76 0.13 180);
+  --trust-foreground: oklch(0.83 0.13 180);
+  --trust-border: oklch(0.76 0.13 180 / 28%);
+  --warning: oklch(0.82 0.15 80);
+  --hazard-rain: oklch(0.76 0.14 225);
+  --hazard-flood: oklch(0.8 0.14 195);
+  --hazard-landslide: oklch(0.82 0.16 78);
+  --hazard-cyclone: oklch(0.68 0.24 350);
+  --hazard-fire: oklch(0.75 0.18 50);
+  --hazard-lightning: oklch(0.9 0.17 100);
+  --hazard-tsunami: oklch(0.72 0.2 300);
+  --hazard-heat: oklch(0.84 0.19 125);
+  --hazard-quake: oklch(0.74 0.2 350);
+  --hazard-snow: oklch(0.88 0.08 220);
 }
 
 .dark {
@@ -140,5 +179,71 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    min-width: 320px;
+    overflow-x: hidden;
+  }
+}
+
+@utility panel-surface {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--panel-foreground);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 5%, transparent), 0 12px 36px color-mix(in oklab, var(--space) 55%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+@utility status-dot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 9px color-mix(in oklab, var(--primary) 65%, transparent);
+  animation: sentinel-pulse 2.2s ease-in-out infinite;
+}
+
+@utility bg-globe-vignette {
+  background: radial-gradient(circle at center, transparent 48%, color-mix(in oklab, var(--space) 82%, transparent) 100%);
+}
+
+@utility bg-report-pattern {
+  background-color: var(--panel-muted);
+  background-image: linear-gradient(135deg, color-mix(in oklab, var(--primary) 8%, transparent) 25%, transparent 25%, transparent 50%, color-mix(in oklab, var(--primary) 8%, transparent) 50%, color-mix(in oklab, var(--primary) 8%, transparent) 75%, transparent 75%);
+  background-size: 12px 12px;
+}
+
+.globe-marker {
+  color: var(--panel-foreground);
+  border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+  background: color-mix(in oklab, var(--panel) 88%, transparent);
+  box-shadow: 0 0 18px color-mix(in oklab, var(--primary) 25%, transparent);
+}
+
+.globe-marker-selected {
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 0 24px color-mix(in oklab, var(--primary) 65%, transparent);
+  animation: marker-pulse 1.8s ease-out infinite;
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-border) transparent;
+}
+
+@keyframes sentinel-pulse {
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+
+@keyframes marker-pulse {
+  50% { transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

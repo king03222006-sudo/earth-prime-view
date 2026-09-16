@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
@@ -8,23 +8,38 @@ import { Markers } from "./Markers";
 import { Routes } from "./Routes";
 import { Satellites } from "./Satellites";
 import { Nebula } from "./Nebula";
+import { IndiaLayers } from "./IndiaLayers";
+import type { DisasterEvent, HazardType } from "@/data/indiaDemoData";
 
-function SpinningEarth({ radius, sunDirection }: { radius: number; sunDirection: THREE.Vector3 }) {
-  const spinRef = useRef<THREE.Group>(null!);
+function SpinningEarth({ radius, sunDirection, events, selectedId, activeHazards, indiaFocus, showRoutes, onSelect }: {
+  radius: number;
+  sunDirection: THREE.Vector3;
+  events: DisasterEvent[];
+  selectedId: string;
+  activeHazards: Set<HazardType>;
+  indiaFocus: boolean;
+  showRoutes: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const spinRef = useRef<THREE.Group>(null);
+  useEffect(() => {
+    if (indiaFocus && spinRef.current) spinRef.current.rotation.y = Math.PI + 0.2;
+  }, [indiaFocus]);
   useFrame((_, dt) => {
-    if (spinRef.current) spinRef.current.rotation.y += dt * 0.03;
+    if (spinRef.current && !indiaFocus) spinRef.current.rotation.y += dt * 0.025;
   });
   return (
-    <group ref={spinRef}>
+    <group ref={spinRef} rotation={[0, Math.PI + 0.2, 0]}>
       <Earth radius={radius} sunDirection={sunDirection} />
-      <Routes radius={radius} />
-      <Markers radius={radius} />
+      {showRoutes && <Routes radius={radius} />}
+      {!indiaFocus && <Markers radius={radius} />}
+      <IndiaLayers events={events} selectedId={selectedId} activeHazards={activeHazards} showLabels={indiaFocus} onSelect={onSelect} />
     </group>
   );
 }
 
-function Sun({ sunRef }: { sunRef: React.MutableRefObject<THREE.Vector3> }) {
-  const lightRef = useRef<THREE.DirectionalLight>(null!);
+function Sun({ sunRef }: { sunRef: MutableRefObject<THREE.Vector3> }) {
+  const lightRef = useRef<THREE.DirectionalLight>(null);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime * 0.04;
     sunRef.current.set(Math.cos(t) * 5, Math.sin(t * 0.3) * 1.5, Math.sin(t) * 5);
@@ -50,7 +65,14 @@ function CinematicCamera() {
   return null;
 }
 
-export default function GlobeScene() {
+export default function GlobeScene({ events, selectedId, activeHazards, indiaFocus, showRoutes, onSelect }: {
+  events: DisasterEvent[];
+  selectedId: string;
+  activeHazards: Set<HazardType>;
+  indiaFocus: boolean;
+  showRoutes: boolean;
+  onSelect: (id: string) => void;
+}) {
   const sunRef = useRef(new THREE.Vector3(5, 1, 3));
   const radius = 1;
 
@@ -59,7 +81,7 @@ export default function GlobeScene() {
   return (
     <Canvas
       dpr={dpr}
-      camera={{ position: [0, 0.4, 3.2], fov: 38, near: 0.1, far: 200 }}
+      camera={{ position: [0, 0.25, 3.05], fov: 38, near: 0.1, far: 200 }}
       gl={{
         antialias: true,
         toneMapping: THREE.ACESFilmicToneMapping,
@@ -73,7 +95,7 @@ export default function GlobeScene() {
         <Nebula />
         <Stars radius={60} depth={40} count={9000} factor={3.2} saturation={0.2} fade speed={0.4} />
         <Stars radius={30} depth={20} count={3000} factor={1.8} saturation={0} fade speed={0.2} />
-        <SpinningEarth radius={radius} sunDirection={sunRef.current} />
+        <SpinningEarth radius={radius} sunDirection={sunRef.current} events={events} selectedId={selectedId} activeHazards={activeHazards} indiaFocus={indiaFocus} showRoutes={showRoutes} onSelect={onSelect} />
         <Satellites count={120} radius={radius} />
         <CinematicCamera />
         <OrbitControls
@@ -84,7 +106,7 @@ export default function GlobeScene() {
           zoomSpeed={0.6}
           minDistance={1.6}
           maxDistance={6}
-          autoRotate
+          autoRotate={!indiaFocus}
           autoRotateSpeed={0.25}
         />
         <EffectComposer multisampling={0}>
