@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import GlobeScene from "./GlobeScene";
+import type { DisasterEvent, HazardType } from "@/data/indiaDemoData";
 
-export function GlobeClient() {
+export function GlobeClient({ events, selectedId, activeHazards, indiaFocus, showRoutes, onSelect }: {
+  events: DisasterEvent[];
+  selectedId: string;
+  activeHazards: Set<HazardType>;
+  indiaFocus: boolean;
+  showRoutes: boolean;
+  onSelect: (id: string) => void;
+}) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) {
@@ -11,5 +19,5 @@ export function GlobeClient() {
       </div>
     );
   }
-  return <GlobeScene />;
+  return <GlobeScene events={events} selectedId={selectedId} activeHazards={activeHazards} indiaFocus={indiaFocus} showRoutes={showRoutes} onSelect={onSelect} />;
 }
