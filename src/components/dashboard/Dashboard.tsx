@@ -1,532 +1,281 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import {
-  Activity,
-  AlertTriangle,
-  Bell,
-  Brain,
-  Building2,
-  ChevronRight,
-  Circle,
-  Clock,
-  Cloud,
-  FileText,
-  Flame,
-  Layers,
-  type LucideIcon,
-  MapPin,
-  Radar,
-  Satellite,
-  Search,
-  Send,
-  Settings,
-  Shield,
-  Sparkles,
-  ThermometerSun,
-  Truck,
-  Users,
-  Waves,
-  X,
-  Zap,
+  Activity, ArrowRight, Bell, Building2, Check, ChevronRight, CircleAlert, Clipboard, CloudOff,
+  Copy, FileDown, FilePlus2, FileText, Globe2, HeartPulse, Languages, MapPin, Menu, MessageSquare,
+  Navigation, Radio, RefreshCw, Search, Send, ShieldCheck, Sparkles, Upload, Users, Wifi, X,
 } from "lucide-react";
+import { GlobeClient } from "@/components/globe/GlobeClient";
+import { HazardIcon } from "./HazardIcon";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  alertTimeline, demoAnswers, eventFilters, fieldReports, globalEvents, hazardMeta, impactAssessment,
+  indiaEvents, officialSources, roleActions, shelters, sourceCitations, suggestedQuestions,
+  type DisasterEvent, type HazardType,
+} from "@/data/indiaDemoData";
+import { cn } from "@/lib/utils";
 
-/* ---------- shared ---------- */
+const primaryHazards: HazardType[] = ["heavy-rain", "flood", "landslide", "cyclone", "wildfire", "lightning", "tsunami", "heatwave"];
+const filterKeys: Record<(typeof eventFilters)[number], string> = {
+  All: "all", "Official alerts": "official", Weather: "weather", Flood: "flood", Fire: "fire",
+  Landslide: "landslide", Coastal: "coastal", "AI estimates": "ai",
+};
 
-const glass =
-  "rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-xl shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset]";
-
-function useNow() {
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return now;
+function Panel({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <section className={cn("panel-surface", className)}>{children}</section>;
 }
 
-/* ---------- top nav ---------- */
-
-function TopNav() {
-  const now = useNow();
-  const time = now
-    ? now.toLocaleTimeString("en-US", { hour12: false }) + " UTC"
-    : "—— : —— : ——";
+function PanelHeader({ icon: Icon, title, action }: { icon: typeof Activity; title: string; action?: React.ReactNode }) {
   return (
-    <header className="pointer-events-auto absolute inset-x-0 top-0 z-30 flex items-center justify-between px-6 py-4">
-      <div className="flex items-center gap-3">
-        <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400/30 to-emerald-400/20 ring-1 ring-white/10">
-          <Sparkles className="h-4 w-4 text-sky-300" />
-        </div>
-        <div className="leading-tight">
-          <div className="text-[13px] font-medium tracking-tight text-white/90">Sentinel</div>
-          <div className="text-[10px] tracking-[0.18em] text-white/40">DISASTER · AI OS</div>
+    <div className="flex items-center justify-between border-b border-panel-border px-4 py-3">
+      <div className="flex items-center gap-2">
+        <Icon className="size-3.5 text-primary" />
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-panel-foreground">{title}</h2>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function TrustBadge({ children }: { children: React.ReactNode }) {
+  return <Badge variant="outline" className="h-auto border-trust-border bg-trust/10 px-1.5 py-0.5 text-[9px] font-medium text-trust-foreground">{children}</Badge>;
+}
+
+function TopBar({ role, onRoleChange, onReport }: { role: keyof typeof roleActions; onRoleChange: (role: keyof typeof roleActions) => void; onReport: () => void }) {
+  return (
+    <header className="sticky top-0 z-40 flex min-h-16 items-center gap-3 border-b border-panel-border bg-background/80 px-3 backdrop-blur-xl md:px-5">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/10"><Sparkles className="size-4 text-primary" /></div>
+        <div className="min-w-0">
+          <h1 className="truncate text-sm font-semibold text-foreground">Sentinel WeatherGPT India</h1>
+          <p className="truncate text-[9px] uppercase tracking-[0.16em] text-muted-foreground">India-first multi-hazard intelligence</p>
         </div>
       </div>
-
-      <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 w-[360px] ${glass} rounded-full`}>
-        <Search className="h-3.5 w-3.5 text-white/40" />
-        <input
-          placeholder="Ask Sentinel anything…"
-          className="flex-1 bg-transparent text-xs text-white/80 placeholder:text-white/30 outline-none"
-        />
-        <span className="rounded border border-white/10 px-1.5 py-0.5 text-[9px] text-white/40">⌘K</span>
+      <div className="mx-auto hidden max-w-md flex-1 items-center gap-2 rounded-md border border-panel-border bg-panel/70 px-3 py-2 lg:flex">
+        <Search className="size-3.5 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">Search region, alert or source</span>
       </div>
-
-      <div className="flex items-center gap-4 text-[11px] text-white/60">
-        <div className="hidden md:flex items-center gap-2">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/60" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          </span>
-          AI Online
+      <div className="ml-auto flex items-center gap-2">
+        <div className="hidden items-center gap-2 rounded-md border border-panel-border bg-panel/60 p-1 sm:flex" aria-label="Select operating role">
+          {(Object.keys(roleActions) as (keyof typeof roleActions)[]).map((item) => (
+            <Button key={item} size="sm" variant="ghost" onClick={() => onRoleChange(item)} aria-pressed={role === item} className={cn("h-8 px-2 text-[10px]", role === item && "bg-primary/12 text-primary")}>{item}</Button>
+          ))}
         </div>
-        <div className="hidden sm:block tabular-nums tracking-wider">{time}</div>
-        <button className="rounded-md p-1.5 text-white/60 hover:bg-white/5 hover:text-white">
-          <Settings className="h-3.5 w-3.5" />
-        </button>
+        <div className="hidden items-center gap-1.5 text-[10px] text-muted-foreground md:flex"><span className="status-dot" /> Demo workspace</div>
+        <Button size="sm" onClick={onReport} className="h-9 bg-primary/15 px-3 text-primary shadow-none hover:bg-primary/25"><FileText /> <span className="hidden md:inline">Generate Situation Report</span></Button>
       </div>
     </header>
   );
 }
 
-/* ---------- left: live events ---------- */
-
-const events = [
-  {
-    id: "e1",
-    title: "Earthquake",
-    location: "Sendai, Japan",
-    severity: "Critical",
-    magnitude: "7.2",
-    affected: "1.4M",
-    detected: "2m ago",
-    color: "text-rose-300",
-    dot: "bg-rose-400",
-  },
-  {
-    id: "e2",
-    title: "Wildfire",
-    location: "Athens, Greece",
-    severity: "High",
-    magnitude: "—",
-    affected: "120K",
-    detected: "47m ago",
-    color: "text-amber-300",
-    dot: "bg-amber-400",
-  },
-  {
-    id: "e3",
-    title: "Flood",
-    location: "Dhaka, Bangladesh",
-    severity: "Warning",
-    magnitude: "—",
-    affected: "320K",
-    detected: "2h ago",
-    color: "text-sky-300",
-    dot: "bg-sky-400",
-  },
-];
-
-function LiveEvents({ onSelect }: { onSelect: (id: string) => void }) {
-  const [active, setActive] = useState("e1");
+function LiveEventsPanel({ events, selectedId, onSelect }: { events: DisasterEvent[]; selectedId: string; onSelect: (id: string) => void }) {
+  const [filter, setFilter] = useState<(typeof eventFilters)[number]>("All");
+  const visible = filter === "All" ? events : events.filter((event) => event.filters.includes(filterKeys[filter]));
   return (
-    <aside className={`pointer-events-auto absolute left-6 top-24 z-20 w-[300px] ${glass} p-4`}>
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[10px] tracking-[0.22em] text-white/40">
-          <Activity className="h-3 w-3" /> LIVE EVENTS
-        </div>
-        <span className="text-[10px] text-white/40">{events.length} active</span>
+    <Panel className="min-h-0 overflow-hidden">
+      <PanelHeader icon={Activity} title="Live Events" action={<Badge variant="outline" className="border-panel-border text-[9px] text-muted-foreground">Demo data</Badge>} />
+      <div className="scrollbar-thin flex gap-1 overflow-x-auto border-b border-panel-border p-2">
+        {eventFilters.map((item) => <Button key={item} size="sm" variant="ghost" onClick={() => setFilter(item)} aria-pressed={filter === item} className={cn("h-7 shrink-0 px-2 text-[9px]", filter === item && "bg-secondary text-foreground")}>{item}</Button>)}
       </div>
-
-      <div className="space-y-2">
-        {events.map((e) => {
-          const open = e.id === active;
+      <div className="scrollbar-thin max-h-[530px] space-y-1.5 overflow-y-auto p-2 lg:max-h-[calc(100dvh-255px)]">
+        {visible.map((event) => {
+          const active = event.id === selectedId;
           return (
-            <button
-              key={e.id}
-              onClick={() => {
-                setActive(e.id);
-                onSelect(e.id);
-              }}
-              className={`w-full rounded-xl border text-left transition-all duration-300 ${
-                open
-                  ? "border-white/10 bg-white/[0.04]"
-                  : "border-white/[0.04] bg-transparent hover:bg-white/[0.02]"
-              }`}
-            >
-              <div className="flex items-center gap-3 px-3 py-2.5">
-                <span className={`h-2 w-2 rounded-full ${e.dot} shadow-[0_0_10px_currentColor] ${e.color}`} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="truncate text-[13px] font-medium text-white/90">{e.title}</span>
-                    <span className={`text-[10px] ${e.color}`}>{e.severity}</span>
-                  </div>
-                  <div className="truncate text-[11px] text-white/40">{e.location}</div>
-                </div>
-              </div>
-              <div
-                className={`grid grid-cols-3 gap-2 overflow-hidden px-3 transition-all duration-300 ${
-                  open ? "max-h-24 pb-3 opacity-100" : "max-h-0 opacity-0"
-                }`}
-              >
-                <Metric label="Magnitude" value={e.magnitude} />
-                <Metric label="Affected" value={e.affected} />
-                <Metric label="Detected" value={e.detected} />
-              </div>
-            </button>
+            <Button key={event.id} variant="ghost" onClick={() => onSelect(event.id)} className={cn("h-auto min-h-20 w-full items-start justify-start whitespace-normal rounded-md border border-transparent p-3 text-left", active ? "border-primary/25 bg-primary/8" : "bg-panel-muted/45 hover:bg-panel-muted")}> 
+              <span className={cn("mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-secondary", `text-${hazardMeta[event.hazard].tone}`)}><HazardIcon hazard={event.hazard} /></span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-start justify-between gap-2"><span className="font-medium text-foreground">{event.title}</span><span className="text-[9px] text-muted-foreground">{event.updated}</span></span>
+                <span className="mt-0.5 block text-[10px] text-muted-foreground">{event.region} · {event.district}</span>
+                <span className="mt-2 flex flex-wrap items-center gap-1.5"><Badge variant="outline" className="border-panel-border px-1.5 py-0 text-[9px]">{event.source}</Badge><span className="text-[9px] text-foreground">{event.severity}</span><TrustBadge>{event.trust}</TrustBadge></span>
+              </span>
+            </Button>
           );
         })}
       </div>
-    </aside>
+    </Panel>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function OfficialSourcesPanel() {
   return (
-    <div className="rounded-lg bg-white/[0.03] px-2 py-1.5">
-      <div className="text-[9px] tracking-wider text-white/35">{label}</div>
-      <div className="text-[12px] tabular-nums text-white/90">{value}</div>
-    </div>
+    <Panel>
+      <PanelHeader icon={Radio} title="Official Indian Sources" action={<span className="text-[9px] text-muted-foreground">Demo states</span>} />
+      <div className="grid grid-cols-2 gap-1.5 p-3">
+        {officialSources.map((source) => (
+          <Tooltip key={source.name}>
+            <TooltipTrigger asChild>
+              <button className="flex min-h-12 items-center gap-2 rounded-md border border-panel-border bg-panel-muted/45 px-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span className={cn("size-1.5 shrink-0 rounded-full", source.state === "Cached" ? "bg-warning" : source.state === "Reference" ? "bg-muted-foreground" : "status-dot")} />
+                <span className="min-w-0"><span className="block truncate text-[10px] font-medium">{source.name}</span><span className="block truncate text-[8px] text-muted-foreground">Demo · {source.state}</span></span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-56 border border-panel-border bg-panel text-panel-foreground"><p>{source.role}</p><p className="mt-1 text-muted-foreground">Last sync {source.sync}</p></TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    </Panel>
   );
 }
 
-/* ---------- right: AI panel ---------- */
-
-const aiSteps = [
-  "Satellite imagery",
-  "Historical disasters",
-  "Weather forecast",
-  "Road conditions",
-  "Citizen reports",
-];
-
-const aiFeed = [
-  "Scanning satellite imagery…",
-  "Comparing 2001 Bhuj earthquake patterns…",
-  "Predicting aftershock probabilities…",
-  "Checking hospital availability within 50km…",
-  "Finding safest evacuation route…",
-  "Cross-referencing weather forecast…",
-];
-
-function AIPanel() {
-  const [done, setDone] = useState<number>(0);
-  const [feed, setFeed] = useState(0);
-
-  useEffect(() => {
-    if (done >= aiSteps.length) return;
-    const t = setTimeout(() => setDone((d) => d + 1), 700);
-    return () => clearTimeout(t);
-  }, [done]);
-
-  useEffect(() => {
-    const id = setInterval(() => setFeed((f) => (f + 1) % aiFeed.length), 2400);
-    return () => clearInterval(id);
-  }, []);
-
-  const complete = done >= aiSteps.length;
-
+function GlobeWorkspace({ events, selected, onSelect, indiaFocus, onIndiaFocus, globalEnabled, onGlobalEnabled, activeHazards, onToggleHazard, showRoutes, onRoutes }: {
+  events: DisasterEvent[]; selected: DisasterEvent; onSelect: (id: string) => void; indiaFocus: boolean; onIndiaFocus: (value: boolean) => void;
+  globalEnabled: boolean; onGlobalEnabled: (value: boolean) => void; activeHazards: Set<HazardType>; onToggleHazard: (hazard: HazardType) => void; showRoutes: boolean; onRoutes: (value: boolean) => void;
+}) {
   return (
-    <aside className={`pointer-events-auto absolute right-6 top-24 z-20 w-[300px] ${glass} p-4`}>
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[10px] tracking-[0.22em] text-white/40">
-          <Brain className="h-3 w-3" /> AI REASONING
+    <section className="relative min-h-[560px] overflow-hidden rounded-md border border-panel-border bg-space shadow-2xl lg:min-h-[calc(100dvh-82px)]">
+      <GlobeClient events={events} selectedId={selected.id} activeHazards={activeHazards} indiaFocus={indiaFocus} showRoutes={showRoutes} onSelect={onSelect} />
+      <div className="pointer-events-none absolute inset-0 bg-globe-vignette" />
+      <div className="pointer-events-auto absolute left-3 right-3 top-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1 rounded-md border border-panel-border bg-panel/75 p-1 backdrop-blur-xl">
+          <Button size="sm" variant="ghost" aria-pressed={indiaFocus} onClick={() => onIndiaFocus(!indiaFocus)} className={cn("h-8 px-2 text-[10px]", indiaFocus && "bg-primary/15 text-primary")}><MapPin /> India Focus</Button>
+          <Button size="sm" variant="ghost" aria-pressed={globalEnabled} onClick={() => onGlobalEnabled(!globalEnabled)} className={cn("h-8 px-2 text-[10px]", globalEnabled && "bg-secondary")}><Globe2 /> Global Events</Button>
+          <Button size="sm" variant="ghost" aria-pressed={showRoutes} onClick={() => onRoutes(!showRoutes)} className={cn("h-8 px-2 text-[10px]", showRoutes && "bg-secondary")}><Navigation /> Routes</Button>
         </div>
-        <span className="flex items-center gap-1 text-[10px] text-emerald-300/80">
-          <Circle className="h-1.5 w-1.5 fill-current" />
-          {complete ? "Complete" : "Live"}
-        </span>
+        <div className="rounded-md border border-panel-border bg-panel/75 px-2 py-1.5 text-[9px] text-muted-foreground backdrop-blur-xl"><span className="text-primary">INDIA CENTRED</span> · 22.9°N 79.8°E</div>
       </div>
-
-      <div className="mb-4 text-[13px] leading-relaxed text-white/80">
-        {complete ? "Safest evacuation generated." : "Analyzing event signals…"}
-      </div>
-
-      <div className="space-y-2">
-        {aiSteps.map((s, i) => {
-          const isDone = i < done;
-          const isActive = i === done && !complete;
-          return (
-            <div key={s} className="flex items-center gap-3 text-[12px]">
-              <span
-                className={`flex h-4 w-4 items-center justify-center rounded-full border transition-all ${
-                  isDone
-                    ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-300"
-                    : isActive
-                      ? "border-sky-400/40 bg-sky-400/10 text-sky-300"
-                      : "border-white/10 text-white/30"
-                }`}
-              >
-                {isDone ? "✓" : isActive ? <Circle className="h-1.5 w-1.5 animate-pulse fill-current" /> : ""}
-              </span>
-              <span className={isDone ? "text-white/80" : isActive ? "text-white/70" : "text-white/35"}>
-                {s}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2 border-t border-white/5 pt-4">
-        <div>
-          <div className="text-[9px] tracking-wider text-white/35">CONFIDENCE</div>
-          <div className="text-[15px] text-emerald-300 tabular-nums">94%</div>
-        </div>
-        <div>
-          <div className="text-[9px] tracking-wider text-white/35">ETA</div>
-          <div className="text-[15px] text-white/85 tabular-nums">
-            {complete ? "0s" : `${Math.max(1, aiSteps.length - done)}s`}
+      <div className="pointer-events-auto absolute bottom-20 left-3 right-3 md:right-auto md:w-[330px]">
+        <div className="rounded-md border border-panel-border bg-panel/82 p-3 backdrop-blur-xl">
+          <div className="flex items-start gap-3">
+            <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-md bg-secondary", `text-${hazardMeta[selected.hazard].tone}`)}><HazardIcon hazard={selected.hazard} /></span>
+            <div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><h2 className="text-sm font-semibold">{selected.title} · {selected.region}</h2><Badge variant="outline" className="border-panel-border text-[9px]">{selected.severity}</Badge></div><p className="mt-1 text-[10px] text-muted-foreground">{selected.district} · {selected.source} · {selected.updated}</p></div>
           </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-foreground/75">{selected.summary}</p>
+          <div className="mt-2 flex items-center justify-between"><TrustBadge>{selected.trust}</TrustBadge><span className="text-[9px] text-muted-foreground">Demo data</span></div>
         </div>
       </div>
-
-      <div className="mt-4 flex items-start gap-2 rounded-lg border border-white/5 bg-black/20 px-3 py-2 text-[11px] text-white/55">
-        <Sparkles className="mt-0.5 h-3 w-3 shrink-0 text-sky-300/80" />
-        <span className="leading-relaxed">{aiFeed[feed]}</span>
+      <div className="pointer-events-auto absolute inset-x-3 bottom-3 rounded-md border border-panel-border bg-panel/80 p-2 backdrop-blur-xl">
+        <div className="mb-1.5 flex items-center justify-between"><span className="text-[9px] font-semibold tracking-[0.14em]">INDIA HAZARD LAYERS</span><span className="text-[8px] text-muted-foreground">Select to show / hide</span></div>
+        <div className="scrollbar-thin flex gap-1 overflow-x-auto">
+          {primaryHazards.map((hazard) => {
+            const active = activeHazards.has(hazard);
+            return <Button key={hazard} size="sm" variant="ghost" aria-pressed={active} onClick={() => onToggleHazard(hazard)} className={cn("h-8 shrink-0 px-2 text-[9px]", active ? "bg-secondary text-foreground" : "text-muted-foreground opacity-55")}><HazardIcon hazard={hazard} className={`text-${hazardMeta[hazard].tone}`} />{hazardMeta[hazard].label}</Button>;
+          })}
+        </div>
       </div>
-    </aside>
+    </section>
   );
 }
 
-/* ---------- globe layer toggles ---------- */
-
-const layers: { id: string; label: string; icon: LucideIcon }[] = [
-  { id: "weather", label: "Weather", icon: Cloud },
-  { id: "heat", label: "Heatmap", icon: ThermometerSun },
-  { id: "sat", label: "Satellite", icon: Satellite },
-  { id: "routes", label: "Routes", icon: Radar },
-];
-
-function LayerToggles() {
-  const [on, setOn] = useState<Record<string, boolean>>({ routes: true });
+function WeatherGPTPanel({ onReport }: { onReport: () => void }) {
+  const [question, setQuestion] = useState(suggestedQuestions[0]);
+  const [answer, setAnswer] = useState(demoAnswers[suggestedQuestions[0]]);
+  const submit = () => {
+    const normalized = question.trim();
+    if (!normalized) return;
+    setAnswer(demoAnswers[normalized] ?? "This local demo can answer the suggested India hazard questions. A connected WeatherGPT service can replace this response later.");
+  };
   return (
-    <div className={`pointer-events-auto absolute left-1/2 top-24 z-20 -translate-x-1/2 ${glass} flex items-center gap-1 p-1`}>
-      {layers.map((l) => {
-        const active = !!on[l.id];
-        const Icon = l.icon;
-        return (
-          <button
-            key={l.id}
-            onClick={() => setOn((p) => ({ ...p, [l.id]: !p[l.id] }))}
-            className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[11px] transition-colors ${
-              active ? "bg-white/10 text-white" : "text-white/55 hover:bg-white/[0.04] hover:text-white/80"
-            }`}
-          >
-            <Icon className="h-3 w-3" />
-            {l.label}
-          </button>
-        );
-      })}
-    </div>
+    <Panel>
+      <PanelHeader icon={MessageSquare} title="WeatherGPT" action={<span className="flex items-center gap-1 text-[9px] text-primary"><span className="status-dot" /> Demo online</span>} />
+      <div className="p-3">
+        <div className="scrollbar-thin flex gap-1 overflow-x-auto pb-2">
+          {suggestedQuestions.map((item) => <Button key={item} variant="outline" size="sm" onClick={() => { setQuestion(item); setAnswer(demoAnswers[item]); }} className="h-auto max-w-44 shrink-0 whitespace-normal border-panel-border bg-panel-muted/50 px-2 py-1.5 text-left text-[9px] leading-snug">{item}</Button>)}
+        </div>
+        <div className="space-y-2" aria-live="polite">
+          <div className="ml-7 rounded-md bg-secondary px-3 py-2 text-[10px] text-foreground">{question}</div>
+          <div className="mr-4 rounded-md border border-primary/15 bg-primary/5 p-3"><div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-medium text-primary"><Sparkles className="size-3" /> WeatherGPT</div><p className="text-[11px] leading-relaxed text-foreground/80">{answer}</p><div className="mt-2 flex flex-wrap gap-1">{sourceCitations.map((item) => <Badge key={item} variant="outline" className="border-panel-border px-1.5 py-0 text-[8px]">{item}</Badge>)}</div><p className="mt-2 text-[9px] text-warning">AI-assisted summary. Follow official agency instructions.</p></div>
+        </div>
+        <div className="mt-2 flex gap-2"><Input value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submit(); }} aria-label="Ask WeatherGPT" className="h-9 border-panel-border bg-panel-muted text-xs" /><Button size="icon" onClick={submit} aria-label="Send question" className="size-9 shrink-0"><Send /></Button></div>
+        {question === suggestedQuestions[5] && <Button size="sm" variant="outline" onClick={onReport} className="mt-2 w-full border-panel-border text-[10px]"><FileText /> Open preview report</Button>}
+      </div>
+    </Panel>
   );
 }
 
-/* ---------- AI memory floating chip ---------- */
+function ImpactPanel() {
+  return <Panel><PanelHeader icon={Activity} title="Impact Assessment" action={<TrustBadge>AI-assisted estimate</TrustBadge>} /><div className="grid grid-cols-2 gap-px bg-panel-border sm:grid-cols-5 lg:grid-cols-2 xl:grid-cols-3">{impactAssessment.map((metric) => <div key={metric.label} className="bg-panel px-3 py-2.5"><div className="text-base font-semibold tabular-nums text-foreground">{metric.value}</div><div className="text-[9px] text-muted-foreground">{metric.label}</div></div>)}</div><p className="border-t border-panel-border p-3 text-[9px] leading-relaxed text-muted-foreground">Based on official alert severity, forecast context, mapped infrastructure and population exposure. Not an official warning.</p></Panel>;
+}
 
-function MemoryChip({ onOpen }: { onOpen: () => void }) {
+function SheltersPanel() {
   return (
-    <button
-      onClick={onOpen}
-      className={`pointer-events-auto absolute left-6 bottom-40 z-20 ${glass} group flex items-center gap-3 px-3 py-2 text-left hover:bg-white/[0.05]`}
-    >
-      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-500/15 text-violet-300 ring-1 ring-violet-300/20">
-        <Brain className="h-3.5 w-3.5" />
-      </div>
-      <div className="leading-tight">
-        <div className="text-[11px] text-white/85">Historical memory loaded</div>
-        <div className="text-[10px] text-white/40">4 references · click to compare</div>
-      </div>
-      <ChevronRight className="h-3.5 w-3.5 text-white/30 transition-transform group-hover:translate-x-0.5" />
-    </button>
+    <Panel>
+      <PanelHeader icon={Building2} title="Verified Shelters" action={<span className="text-[9px] text-primary">12 relief centres</span>} />
+      <div className="grid grid-cols-2 gap-px border-b border-panel-border bg-panel-border text-[9px]"><div className="bg-panel p-2"><span className="text-muted-foreground">Estimated capacity</span><strong className="mt-0.5 block text-sm">6,850</strong></div><div className="bg-panel p-2"><span className="text-muted-foreground">Status</span><strong className="mt-0.5 block text-sm text-primary">Operational</strong></div></div>
+      <div className="space-y-1.5 p-2">{shelters.map((shelter) => <div key={shelter.id} className="rounded-md border border-panel-border bg-panel-muted/40 p-2"><div className="flex items-start justify-between gap-2"><div><div className="text-[10px] font-medium">{shelter.name}</div><div className="mt-0.5 text-[9px] text-muted-foreground">{shelter.distance} · capacity {shelter.capacity}</div></div><TrustBadge>{shelter.status}</TrustBadge></div><div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[8px] text-muted-foreground"><span>Access: {shelter.accessibility}</span><span>Medical: {shelter.medical}</span><span>Water: {shelter.water}</span><span>Verified: {shelter.verified}</span></div><Button size="sm" variant="ghost" className="mt-1 h-7 w-full justify-between text-[9px]">View route <ArrowRight /></Button></div>)}</div>
+    </Panel>
   );
 }
 
-/* ---------- floating disaster card ---------- */
+function LifecyclePanel() {
+  return <Panel><PanelHeader icon={RefreshCw} title="Alert Timeline" /><ol className="space-y-0 p-3">{alertTimeline.map((item, index) => <li key={item.stage} className="relative flex gap-3 pb-4 last:pb-0"><div className="flex w-4 justify-center"><span className={cn("relative z-10 mt-1 size-2 rounded-full", item.state === "active" ? "bg-warning ring-4 ring-warning/10" : "bg-primary")}/>{index < alertTimeline.length - 1 && <span className="absolute bottom-0 top-3 w-px bg-panel-border" />}</div><div><div className="flex items-center gap-2"><span className="text-[10px] font-medium">{item.stage}</span><span className="text-[8px] text-muted-foreground">{item.time}</span></div><p className="mt-0.5 text-[9px] text-muted-foreground">{item.detail}</p></div></li>)}</ol></Panel>;
+}
 
-function DisasterCard({ onClose }: { onClose: () => void }) {
-  const rows = [
-    { icon: Zap, label: "Magnitude", value: "7.2 Mw" },
-    { icon: Layers, label: "Depth", value: "32 km" },
-    { icon: Waves, label: "Tsunami risk", value: "Moderate" },
-    { icon: Building2, label: "Nearest shelter", value: "4.2 km" },
-    { icon: Clock, label: "Evacuation time", value: "18 min" },
-    { icon: Radar, label: "Route", value: "Coastal Hwy 6" },
-    { icon: Shield, label: "Hospital capacity", value: "62%" },
-    { icon: Users, label: "Population", value: "1.4M" },
+function RoleAndLanguage({ role, onRoleChange }: { role: keyof typeof roleActions; onRoleChange: (role: keyof typeof roleActions) => void }) {
+  const [language, setLanguage] = useState("English");
+  return (
+    <Panel>
+      <PanelHeader icon={Languages} title="Language & Offline Readiness" />
+      <div className="p-3">
+        <div className="flex flex-wrap gap-1">{["English", "हिन्दी", "অসমীয়া", "ଓଡ଼ିଆ"].map((item) => <Button key={item} size="sm" variant="ghost" aria-pressed={language === item} onClick={() => setLanguage(item)} className={cn("h-8 px-2 text-[10px]", language === item && "bg-secondary text-primary")}>{item}</Button>)}</div>
+        <p className="mt-2 text-[9px] text-muted-foreground">Sample labels only · full translation not enabled</p>
+        <div className="mt-3 grid grid-cols-3 gap-1 text-center text-[8px]"><div className="rounded-md bg-primary/8 p-2 text-primary"><Wifi className="mx-auto mb-1 size-3" />Live mode</div><div className="rounded-md bg-secondary p-2"><CloudOff className="mx-auto mb-1 size-3" />Cached mode</div><div className="rounded-md bg-warning/8 p-2 text-warning"><CircleAlert className="mx-auto mb-1 size-3" />Warning ready</div></div>
+        <p className="mt-2 text-[9px] text-muted-foreground">Offline cache synced 2 min ago</p>
+        <div className="mt-3 border-t border-panel-border pt-3 sm:hidden"><Label className="text-[9px]">Operating role</Label><div className="mt-1 flex flex-wrap gap-1">{(Object.keys(roleActions) as (keyof typeof roleActions)[]).map((item) => <Button key={item} size="sm" variant="ghost" onClick={() => onRoleChange(item)} className={cn("h-8 px-2 text-[9px]", role === item && "bg-secondary text-primary")}>{item}</Button>)}</div></div>
+      </div>
+    </Panel>
+  );
+}
+
+function RoleActions({ role, onReport, onFieldReport }: { role: keyof typeof roleActions; onReport: () => void; onFieldReport: () => void }) {
+  return <Panel><PanelHeader icon={Users} title={`${role} Actions`} /><div className="grid grid-cols-2 gap-1.5 p-3">{roleActions[role].map((action) => <Button key={action} variant="outline" size="sm" onClick={action.includes("report") ? (action.includes("situation") ? onReport : onFieldReport) : undefined} className="h-auto min-h-10 justify-between whitespace-normal border-panel-border bg-panel-muted/40 px-2 text-left text-[9px]">{action}<ChevronRight /></Button>)}</div></Panel>;
+}
+
+function FieldReportsPanel({ onAdd }: { onAdd: () => void }) {
+  return (
+    <Panel className="xl:col-span-2"><PanelHeader icon={Clipboard} title="Field Reports" action={<Button size="sm" variant="ghost" onClick={onAdd} className="h-7 text-[9px]"><FilePlus2 /> Add Photo / Report</Button>} /><div className="grid gap-2 p-3 md:grid-cols-3">{fieldReports.map((report) => <button key={report.id} className="group flex min-h-24 items-center gap-3 rounded-md border border-panel-border bg-panel-muted/40 p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><span className={cn("flex size-16 shrink-0 items-center justify-center rounded-md bg-report-pattern", `report-${report.image}`)}><MapPin className="size-5 text-foreground/70" /></span><span className="min-w-0 flex-1"><span className="block text-[10px] font-medium">{report.type}</span><span className="mt-1 block text-[9px] text-muted-foreground">{report.location}</span><span className="mt-2 flex items-center justify-between"><TrustBadge>{report.status}</TrustBadge><span className="text-[8px] text-muted-foreground">{report.time}</span></span></span><ChevronRight className="size-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" /></button>)}</div></Panel>
+  );
+}
+
+function ReportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (value: boolean) => void }) {
+  const [submitted, setSubmitted] = useState(false);
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90dvh] overflow-y-auto border-panel-border bg-panel text-panel-foreground"><DialogHeader><DialogTitle>Submit a field report</DialogTitle><DialogDescription>Frontend demo only. Reports are not uploaded or sent to authorities.</DialogDescription></DialogHeader>{submitted ? <div className="rounded-md border border-primary/20 bg-primary/5 p-4 text-sm"><Check className="mb-2 size-5 text-primary" />Demo report queued for verification locally.</div> : <div className="grid gap-4"><div><Label htmlFor="report-type">Report type</Label><Input id="report-type" placeholder="Blocked road, rising water…" className="mt-1 border-panel-border" /></div><div><Label htmlFor="report-location">Location</Label><Input id="report-location" placeholder="District, landmark or road" className="mt-1 border-panel-border" /></div><div><Label htmlFor="report-description">Description</Label><Textarea id="report-description" placeholder="Describe what you observed" className="mt-1 border-panel-border" /></div><button className="flex min-h-28 flex-col items-center justify-center rounded-md border border-dashed border-panel-border bg-panel-muted/40 text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Upload className="mb-2 size-5" />Upload image area · demo only</button></div>}<DialogFooter>{!submitted && <Button onClick={() => setSubmitted(true)}><ShieldCheck /> Submit for verification</Button>}</DialogFooter></DialogContent></Dialog>;
+}
+
+function SituationReportDialog({ open, onOpenChange, event }: { open: boolean; onOpenChange: (value: boolean) => void; event: DisasterEvent }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => { await navigator.clipboard?.writeText(`Sentinel preview report: ${event.title}, ${event.region}. ${event.summary}`); setCopied(true); };
+  const sections = [
+    ["Selected region", `${event.region} · ${event.district}`], ["Hazard type", hazardMeta[event.hazard].label], ["Official alerts", `${event.source} · ${event.updated}`],
+    ["Forecast summary", event.summary], ["Affected districts", "Kamrup Metropolitan, Goalpara and nearby low-lying areas"], ["Population exposure", "1.2M · AI-assisted estimate"],
+    ["Hospitals and shelters", "12 hospitals nearby · 12 relief centres · capacity estimate 6,850"], ["Field reports", "Blocked road, rising water and slope crack reports under review"],
+    ["Recommended actions", "Monitor official alerts, verify local road access, pre-position rescue and medical teams, publish shelter status."], ["Sources and timestamps", sourceCitations.join(" · ")],
+    ["Limitations", "Preview report using demo and cached frontend data. Live occupancy and ground verification are unavailable."],
   ];
-  return (
-    <div className={`pointer-events-auto absolute right-6 bottom-40 z-20 w-[300px] ${glass} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-      <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-rose-400 shadow-[0_0_10px_#fb7185]" />
-          <span className="text-[13px] font-medium text-white/90">Earthquake · Sendai</span>
-        </div>
-        <button onClick={onClose} className="rounded p-1 text-white/40 hover:bg-white/5 hover:text-white">
-          <X className="h-3.5 w-3.5" />
-        </button>
-      </div>
-      <div className="grid grid-cols-2 gap-px bg-white/[0.04] p-px">
-        {rows.map((r) => (
-          <div key={r.label} className="bg-[#0a0d14]/80 px-3 py-2.5">
-            <div className="flex items-center gap-1.5 text-[9px] tracking-wider text-white/35">
-              <r.icon className="h-2.5 w-2.5" />
-              {r.label.toUpperCase()}
-            </div>
-            <div className="mt-0.5 text-[12px] text-white/90 tabular-nums">{r.value}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[90dvh] max-w-2xl overflow-y-auto border-panel-border bg-panel text-panel-foreground"><DialogHeader><div className="flex items-center gap-2"><DialogTitle>Situation Report</DialogTitle><TrustBadge>Preview report</TrustBadge></div><DialogDescription>Generated locally from the selected demo event and displayed context.</DialogDescription></DialogHeader><div className="grid gap-px overflow-hidden rounded-md border border-panel-border bg-panel-border sm:grid-cols-2">{sections.map(([label, value]) => <div key={label} className="bg-panel p-3"><div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div><p className="mt-1 text-[11px] leading-relaxed">{value}</p></div>)}</div><DialogFooter><Button variant="outline" disabled title="PDF export requires backend integration"><FileDown /> Export PDF · placeholder</Button><Button variant="outline" onClick={copy}>{copied ? <Check /> : <Copy />}{copied ? "Copied" : "Copy report"}</Button><Button onClick={() => onOpenChange(false)}>Close</Button></DialogFooter></DialogContent></Dialog>;
 }
-
-/* ---------- bottom: timeline + actions ---------- */
-
-const timeline = [
-  { label: "Earthquake", icon: AlertTriangle },
-  { label: "AI Analysis", icon: Brain },
-  { label: "Routes", icon: Radar },
-  { label: "Alerts", icon: Bell },
-  { label: "Rescue", icon: Truck },
-  { label: "Complete", icon: Shield },
-];
-
-function Timeline() {
-  const [step, setStep] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setStep((s) => (s + 1) % (timeline.length + 1)), 1800);
-    return () => clearInterval(id);
-  }, []);
-  return (
-    <div className={`pointer-events-auto absolute left-1/2 bottom-24 z-20 -translate-x-1/2 ${glass} px-4 py-3`}>
-      <div className="flex items-center gap-1">
-        {timeline.map((t, i) => {
-          const reached = i < step;
-          const active = i === step - 1;
-          return (
-            <div key={t.label} className="flex items-center">
-              <div
-                className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] transition-all duration-500 ${
-                  reached
-                    ? "bg-emerald-400/10 text-emerald-200"
-                    : "text-white/30"
-                } ${active ? "ring-1 ring-emerald-300/40" : ""}`}
-              >
-                <t.icon className="h-3 w-3" />
-                <span className="tracking-wide">{t.label}</span>
-              </div>
-              {i < timeline.length - 1 && (
-                <div
-                  className={`mx-1 h-px w-6 transition-colors duration-500 ${
-                    reached ? "bg-emerald-300/40" : "bg-white/10"
-                  }`}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-const actions = [
-  { label: "Send Emergency Alert", icon: Bell, accent: "text-rose-300" },
-  { label: "View Shelters", icon: Building2, accent: "text-emerald-300" },
-  { label: "Deploy Resources", icon: Truck, accent: "text-sky-300" },
-  { label: "Generate Report", icon: FileText, accent: "text-white/70" },
-];
-
-function ActionBar() {
-  return (
-    <div className="pointer-events-auto absolute inset-x-0 bottom-6 z-20 flex justify-center px-6">
-      <div className={`flex w-full max-w-3xl items-center gap-2 ${glass} p-1.5`}>
-        {actions.map((a) => (
-          <button
-            key={a.label}
-            className="group flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[12px] text-white/75 transition-all hover:bg-white/[0.05] hover:text-white"
-          >
-            <a.icon className={`h-3.5 w-3.5 ${a.accent}`} />
-            <span className="hidden sm:inline">{a.label}</span>
-          </button>
-        ))}
-        <button className="ml-1 flex items-center gap-1.5 rounded-xl bg-emerald-400/15 px-4 py-2.5 text-[12px] text-emerald-200 ring-1 ring-emerald-300/30 hover:bg-emerald-400/25">
-          <Send className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Dispatch</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- memory modal ---------- */
-
-function MemoryModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="pointer-events-auto absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in">
-      <div className={`w-full max-w-lg ${glass} p-6`}>
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Brain className="h-4 w-4 text-violet-300" />
-            <span className="text-sm text-white/90">Historical Memory</span>
-          </div>
-          <button onClick={onClose} className="rounded p-1 text-white/40 hover:bg-white/5 hover:text-white">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="space-y-2">
-          {[
-            { y: "2001", t: "Bhuj Earthquake", s: "7.7 Mw · 20K casualties · pattern match 71%" },
-            { y: "2021", t: "Cyclone Tauktae", s: "Cat 4 · evac model reused" },
-            { y: "2018", t: "Kerala Floods", s: "Aftershock-flood correlation" },
-            { y: "2015", t: "Nepal Earthquake", s: "Aftershock data: 47 events" },
-          ].map((m) => (
-            <div key={m.t} className="flex items-center gap-3 rounded-xl border border-white/5 bg-white/[0.02] px-3 py-2.5">
-              <div className="w-12 text-[11px] tabular-nums text-white/40">{m.y}</div>
-              <div className="flex-1">
-                <div className="text-[13px] text-white/90">{m.t}</div>
-                <div className="text-[11px] text-white/45">{m.s}</div>
-              </div>
-              <ChevronRight className="h-3.5 w-3.5 text-white/30" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------- main ---------- */
 
 export function Dashboard() {
-  const [cardOpen, setCardOpen] = useState(true);
-  const [memOpen, setMemOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(indiaEvents[0].id);
+  const [indiaFocus, setIndiaFocus] = useState(true);
+  const [globalEnabled, setGlobalEnabled] = useState(false);
+  const [showRoutes, setShowRoutes] = useState(true);
+  const [activeHazards, setActiveHazards] = useState<Set<HazardType>>(new Set(primaryHazards));
+  const [role, setRole] = useState<keyof typeof roleActions>("District Officer");
+  const [reportOpen, setReportOpen] = useState(false);
+  const [situationOpen, setSituationOpen] = useState(false);
+  const events = useMemo(() => globalEnabled ? [...indiaEvents, ...globalEvents] : indiaEvents, [globalEnabled]);
+  const selected = events.find((event) => event.id === selectedId) ?? indiaEvents[0];
+  const toggleHazard = (hazard: HazardType) => setActiveHazards((previous) => { const next = new Set(previous); if (next.has(hazard)) next.delete(hazard); else next.add(hazard); return next; });
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 text-white">
-      {/* subtle vignette + grain */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.7)_100%)]" />
-
-      <TopNav />
-      <LiveEvents onSelect={() => setCardOpen(true)} />
-      <LayerToggles />
-      <AIPanel />
-      <MemoryChip onOpen={() => setMemOpen(true)} />
-      {cardOpen && <DisasterCard onClose={() => setCardOpen(false)} />}
-      <Timeline />
-      <ActionBar />
-      {memOpen && <MemoryModal onClose={() => setMemOpen(false)} />}
-
-      {/* coord readout — subtle */}
-      <div className="pointer-events-none absolute left-1/2 bottom-[88px] z-10 -translate-x-1/2 text-[10px] tracking-[0.3em] text-white/25">
-        38.26°N · 140.87°E · SECTOR 07-A
+    <TooltipProvider delayDuration={150}>
+      <div className="min-h-dvh bg-background text-foreground">
+        <TopBar role={role} onRoleChange={setRole} onReport={() => setSituationOpen(true)} />
+        <div className="grid gap-2 p-2 lg:grid-cols-[280px_minmax(520px,1fr)_320px]">
+          <div className="order-2 space-y-2 lg:order-1"><LiveEventsPanel events={events} selectedId={selected.id} onSelect={setSelectedId} /><OfficialSourcesPanel /></div>
+          <div className="order-1 lg:order-2"><GlobeWorkspace events={events} selected={selected} onSelect={setSelectedId} indiaFocus={indiaFocus} onIndiaFocus={setIndiaFocus} globalEnabled={globalEnabled} onGlobalEnabled={setGlobalEnabled} activeHazards={activeHazards} onToggleHazard={toggleHazard} showRoutes={showRoutes} onRoutes={setShowRoutes} /></div>
+          <div className="order-3 space-y-2"><WeatherGPTPanel onReport={() => setSituationOpen(true)} /><ImpactPanel /><RoleActions role={role} onReport={() => setSituationOpen(true)} onFieldReport={() => setReportOpen(true)} /></div>
+        </div>
+        <div className="grid gap-2 px-2 pb-2 xl:grid-cols-4"><SheltersPanel /><LifecyclePanel /><RoleAndLanguage role={role} onRoleChange={setRole} /><FieldReportsPanel onAdd={() => setReportOpen(true)} /></div>
+        <ReportDialog open={reportOpen} onOpenChange={setReportOpen} />
+        <SituationReportDialog open={situationOpen} onOpenChange={setSituationOpen} event={selected} />
       </div>
-
-      {/* unused icons silenced */}
-      <span className="hidden">
-        <Flame />
-        <MapPin />
-      </span>
-    </div>
+    </TooltipProvider>
   );
 }

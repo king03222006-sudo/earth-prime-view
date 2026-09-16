@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GlobeClient } from "@/components/globe/GlobeClient";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Sentinel — AI Disaster Command" },
-      { name: "description", content: "Minimal AI-first disaster command center with a live 3D Earth, evacuation routing, and historical memory." },
-      { property: "og:title", content: "Sentinel — AI Disaster Command" },
-      { property: "og:description", content: "AI-first disaster command center built around a live 3D Earth." },
+      { title: "Sentinel WeatherGPT India — Disaster AI OS" },
+      { name: "description", content: "India-first conversational multi-hazard disaster intelligence with a cinematic 3D Earth and transparent source labels." },
+      { property: "og:title", content: "Sentinel WeatherGPT India — Disaster AI OS" },
+      { property: "og:description", content: "Conversational weather alerts and India-first disaster intelligence on an interactive 3D Earth." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Index,
@@ -16,8 +17,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <main className="relative h-screen w-screen overflow-hidden bg-background text-foreground">
-      <GlobeClient />
+    <main className="min-h-dvh bg-background text-foreground">
       <Dashboard />
     </main>
   );
