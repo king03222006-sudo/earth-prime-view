@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
@@ -38,7 +38,7 @@ function SpinningEarth({ radius, sunDirection, events, selectedId, activeHazards
   );
 }
 
-function Sun({ sunRef }: { sunRef: React.MutableRefObject<THREE.Vector3> }) {
+function Sun({ sunRef }: { sunRef: MutableRefObject<THREE.Vector3> }) {
   const lightRef = useRef<THREE.DirectionalLight>(null);
   useFrame(({ clock }) => {
     const t = clock.elapsedTime * 0.04;

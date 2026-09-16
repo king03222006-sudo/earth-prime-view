@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   Activity, ArrowRight, Bell, Building2, Check, ChevronRight, CircleAlert, Clipboard, CloudOff,
-  Copy, FileDown, FilePlus2, FileText, Globe2, HeartPulse, Languages, MapPin, Menu, MessageSquare,
-  Navigation, Radio, RefreshCw, Search, Send, ShieldCheck, Sparkles, Upload, Users, Wifi, X,
+  Copy, FileDown, FilePlus2, FileText, Globe2, Languages, MapPin, MessageSquare,
+  Navigation, Radio, RefreshCw, Search, Send, ShieldCheck, Sparkles, Upload, Users, Wifi,
 } from "lucide-react";
 import { GlobeClient } from "@/components/globe/GlobeClient";
 import { HazardIcon } from "./HazardIcon";
@@ -27,11 +27,11 @@ const filterKeys: Record<(typeof eventFilters)[number], string> = {
   Landslide: "landslide", Coastal: "coastal", "AI estimates": "ai",
 };
 
-function Panel({ className, children }: { className?: string; children: React.ReactNode }) {
+function Panel({ className, children }: { className?: string; children: ReactNode }) {
   return <section className={cn("panel-surface", className)}>{children}</section>;
 }
 
-function PanelHeader({ icon: Icon, title, action }: { icon: typeof Activity; title: string; action?: React.ReactNode }) {
+function PanelHeader({ icon: Icon, title, action }: { icon: typeof Activity; title: string; action?: ReactNode }) {
   return (
     <div className="flex items-center justify-between border-b border-panel-border px-4 py-3">
       <div className="flex items-center gap-2">
@@ -43,7 +43,7 @@ function PanelHeader({ icon: Icon, title, action }: { icon: typeof Activity; tit
   );
 }
 
-function TrustBadge({ children }: { children: React.ReactNode }) {
+function TrustBadge({ children }: { children: ReactNode }) {
   return <Badge variant="outline" className="h-auto border-trust-border bg-trust/10 px-1.5 py-0.5 text-[9px] font-medium text-trust-foreground">{children}</Badge>;
 }
 
