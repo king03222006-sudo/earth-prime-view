@@ -254,7 +254,7 @@ export function Dashboard() {
   const [selectedId, setSelectedId] = useState(indiaEvents[0].id);
   const [indiaFocus, setIndiaFocus] = useState(true);
   const [globalEnabled, setGlobalEnabled] = useState(false);
-  const [showRoutes, setShowRoutes] = useState(true);
+  const [showRoutes, setShowRoutes] = useState(false);
   const [activeHazards, setActiveHazards] = useState<Set<HazardType>>(new Set(primaryHazards));
   const [role, setRole] = useState<keyof typeof roleActions>("District Officer");
   const [reportOpen, setReportOpen] = useState(false);

@@ -4,7 +4,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { HazardIcon } from "@/components/dashboard/HazardIcon";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { hazardMeta, type DisasterEvent, type HazardType } from "@/data/indiaDemoData";
 import { latLngToVec3 } from "./geo";
 
@@ -69,26 +69,28 @@ function EventMarker({ event, selected, onSelect }: { event: DisasterEvent; sele
   return (
     <group>
       <ImpactRing event={event} selected={selected} />
-      <Html position={position} center distanceFactor={5.4} zIndexRange={[30, 0]}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={`${event.title}, ${event.region}, ${event.severity}`}
-              onClick={() => onSelect(event.id)}
-              className={`globe-marker size-9 rounded-full border backdrop-blur-md ${selected ? "globe-marker-selected" : ""}`}
-            >
-              <HazardIcon hazard={event.hazard} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" className="w-56 border border-panel-border bg-panel text-panel-foreground">
-            <div className="text-xs font-semibold">{event.title} · {event.region}</div>
-            <div className="mt-1 text-[11px] text-muted-foreground">{event.district} · {event.severity}</div>
-            <div className="mt-1 text-[10px] text-muted-foreground">{event.source} · {event.updated}</div>
-            <div className="mt-1 text-[10px] text-primary">{event.trust}</div>
-          </TooltipContent>
-        </Tooltip>
+      <Html position={position} center distanceFactor={2} zIndexRange={[30, 0]}>
+        <TooltipProvider delayDuration={150}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`${event.title}, ${event.region}, ${event.severity}`}
+                onClick={() => onSelect(event.id)}
+                className={`globe-marker size-9 rounded-full border backdrop-blur-md ${selected ? "globe-marker-selected" : ""}`}
+              >
+                <HazardIcon hazard={event.hazard} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="w-56 border border-panel-border bg-panel text-panel-foreground">
+              <div className="text-xs font-semibold">{event.title} · {event.region}</div>
+              <div className="mt-1 text-[11px] text-muted-foreground">{event.district} · {event.severity}</div>
+              <div className="mt-1 text-[10px] text-muted-foreground">{event.source} · {event.updated}</div>
+              <div className="mt-1 text-[10px] text-primary">{event.trust}</div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </Html>
     </group>
   );
@@ -126,7 +128,7 @@ export function IndiaLayers({
         <EventMarker key={event.id} event={event} selected={event.id === selectedId} onSelect={onSelect} />
       ))}
       {showLabels && riskRegions.map(([lat, lng, label]) => (
-        <Html key={label} position={latLngToVec3(lat, lng, 1.025)} center distanceFactor={7.5} zIndexRange={[10, 0]}>
+        <Html key={label} position={latLngToVec3(lat, lng, 1.025)} center distanceFactor={2.2} zIndexRange={[10, 0]}>
           <span className="pointer-events-none whitespace-nowrap rounded-sm bg-panel/70 px-1.5 py-0.5 text-[8px] font-medium text-panel-foreground/70 backdrop-blur-sm">{label}</span>
         </Html>
       ))}
