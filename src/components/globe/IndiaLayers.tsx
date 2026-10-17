@@ -69,7 +69,7 @@ function EventMarker({ event, selected, onSelect }: { event: DisasterEvent; sele
   return (
     <group>
       <ImpactRing event={event} selected={selected} />
-      <Html position={position} center distanceFactor={5.4} zIndexRange={[30, 0]}>
+      <Html position={position} center distanceFactor={2} zIndexRange={[30, 0]}>
         <TooltipProvider delayDuration={150}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -128,7 +128,7 @@ export function IndiaLayers({
         <EventMarker key={event.id} event={event} selected={event.id === selectedId} onSelect={onSelect} />
       ))}
       {showLabels && riskRegions.map(([lat, lng, label]) => (
-        <Html key={label} position={latLngToVec3(lat, lng, 1.025)} center distanceFactor={7.5} zIndexRange={[10, 0]}>
+        <Html key={label} position={latLngToVec3(lat, lng, 1.025)} center distanceFactor={2.2} zIndexRange={[10, 0]}>
           <span className="pointer-events-none whitespace-nowrap rounded-sm bg-panel/70 px-1.5 py-0.5 text-[8px] font-medium text-panel-foreground/70 backdrop-blur-sm">{label}</span>
         </Html>
       ))}
