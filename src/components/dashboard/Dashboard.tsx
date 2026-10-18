@@ -267,10 +267,10 @@ export function Dashboard() {
     <TooltipProvider delayDuration={150}>
       <div className="min-h-dvh bg-background text-foreground">
         <TopBar role={role} onRoleChange={setRole} onReport={() => setSituationOpen(true)} />
-        <div className="grid gap-2 p-2 lg:grid-cols-[280px_minmax(520px,1fr)_320px]">
-          <div className="order-2 space-y-2 lg:order-1"><LiveEventsPanel events={events} selectedId={selected.id} onSelect={setSelectedId} /><OfficialSourcesPanel /></div>
-          <div className="order-1 lg:order-2"><GlobeWorkspace events={events} selected={selected} onSelect={setSelectedId} indiaFocus={indiaFocus} onIndiaFocus={setIndiaFocus} globalEnabled={globalEnabled} onGlobalEnabled={setGlobalEnabled} activeHazards={activeHazards} onToggleHazard={toggleHazard} showRoutes={showRoutes} onRoutes={setShowRoutes} /></div>
-          <div className="order-3 space-y-2"><WeatherGPTPanel onReport={() => setSituationOpen(true)} /><ImpactPanel /><RoleActions role={role} onReport={() => setSituationOpen(true)} onFieldReport={() => setReportOpen(true)} /></div>
+        <div className="grid min-w-0 grid-cols-1 gap-2 p-2 lg:grid-cols-[280px_minmax(520px,1fr)_320px]">
+          <div className="order-2 min-w-0 space-y-2 lg:order-1"><LiveEventsPanel events={events} selectedId={selected.id} onSelect={setSelectedId} /><OfficialSourcesPanel /></div>
+          <div className="order-1 min-w-0 lg:order-2"><GlobeWorkspace events={events} selected={selected} onSelect={setSelectedId} indiaFocus={indiaFocus} onIndiaFocus={setIndiaFocus} globalEnabled={globalEnabled} onGlobalEnabled={setGlobalEnabled} activeHazards={activeHazards} onToggleHazard={toggleHazard} showRoutes={showRoutes} onRoutes={setShowRoutes} /></div>
+          <div className="order-3 min-w-0 space-y-2"><WeatherGPTPanel onReport={() => setSituationOpen(true)} /><ImpactPanel /><RoleActions role={role} onReport={() => setSituationOpen(true)} onFieldReport={() => setReportOpen(true)} /></div>
         </div>
         <div className="grid gap-2 px-2 pb-2 xl:grid-cols-4"><SheltersPanel /><LifecyclePanel /><RoleAndLanguage role={role} onRoleChange={setRole} /><FieldReportsPanel onAdd={() => setReportOpen(true)} /></div>
         <ReportDialog open={reportOpen} onOpenChange={setReportOpen} />

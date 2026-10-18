@@ -109,9 +109,7 @@ const atmosphereFragmentShader = /* glsl */ `
 `;
 
 export function Earth({ radius = 1, sunDirection }: { radius?: number; sunDirection: THREE.Vector3 }) {
-  const earthRef = useRef<THREE.Mesh>(null!);
-  const cloudsRef = useRef<THREE.Mesh>(null!);
-  const groupRef = useRef<THREE.Group>(null!);
+  const cloudsRef = useRef<THREE.Mesh | null>(null);
 
   const [day, night, topo, water, clouds] = useLoader(TextureLoader, [
     EARTH_DAY,
@@ -170,9 +168,9 @@ export function Earth({ radius = 1, sunDirection }: { radius?: number; sunDirect
   });
 
   return (
-    <group ref={groupRef}>
+    <group>
       {/* Earth */}
-      <mesh ref={earthRef}>
+      <mesh>
         <sphereGeometry args={[radius, 128, 128]} />
         <shaderMaterial
           vertexShader={earthVertexShader}
