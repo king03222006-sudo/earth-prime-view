@@ -25,8 +25,8 @@ function RouteArc({
   const glowGeo = useMemo(() => new THREE.TubeGeometry(curve, 80, 0.012, 8, false), [curve]);
 
   // Traveling particle
-  const particleRef = useRef<THREE.Mesh>(null!);
-  const particleTrailRef = useRef<THREE.Mesh>(null!);
+  const particleRef = useRef<THREE.Mesh | null>(null);
+  const particleTrailRef = useRef<THREE.Mesh | null>(null);
 
   useFrame(({ clock }) => {
     const t = ((clock.elapsedTime * 0.18 + offset) % 1);

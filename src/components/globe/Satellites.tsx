@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 export function Satellites({ count = 80, radius = 1 }: { count?: number; radius?: number }) {
-  const ref = useRef<THREE.InstancedMesh>(null!);
+  const ref = useRef<THREE.InstancedMesh | null>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   const sats = useMemo(() => {
@@ -18,6 +18,8 @@ export function Satellites({ count = 80, radius = 1 }: { count?: number; radius?
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
+    const mesh = ref.current;
+    if (!mesh) return;
     sats.forEach((s, i) => {
       const angle = s.phase + t * s.speed;
       // create position on plane perpendicular to axis
@@ -28,9 +30,9 @@ export function Satellites({ count = 80, radius = 1 }: { count?: number; radius?
       const pos = u.clone().multiplyScalar(Math.cos(angle) * s.r).add(v.clone().multiplyScalar(Math.sin(angle) * s.r));
       dummy.position.copy(pos);
       dummy.updateMatrix();
-      ref.current.setMatrixAt(i, dummy.matrix);
+      mesh.setMatrixAt(i, dummy.matrix);
     });
-    ref.current.instanceMatrix.needsUpdate = true;
+    mesh.instanceMatrix.needsUpdate = true;
   });
 
   return (

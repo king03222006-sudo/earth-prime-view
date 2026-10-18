@@ -4,8 +4,8 @@ import * as THREE from "three";
 import { latLngToVec3, MARKERS, KIND_COLORS, type Marker } from "./geo";
 
 function PulseRing({ position, color, scale = 1, speed = 1 }: { position: THREE.Vector3; color: string; scale?: number; speed?: number }) {
-  const ref = useRef<THREE.Mesh>(null!);
-  const matRef = useRef<THREE.MeshBasicMaterial>(null!);
+  const ref = useRef<THREE.Mesh | null>(null);
+  const matRef = useRef<THREE.MeshBasicMaterial | null>(null);
   useFrame(({ clock }) => {
     const t = (clock.elapsedTime * speed) % 2;
     const s = 0.02 + t * 0.12 * scale;
@@ -25,7 +25,7 @@ function PulseRing({ position, color, scale = 1, speed = 1 }: { position: THREE.
 function MarkerDot({ marker, radius }: { marker: Marker; radius: number }) {
   const pos = latLngToVec3(marker.lat, marker.lng, radius * 1.005);
   const color = KIND_COLORS[marker.kind];
-  const dotRef = useRef<THREE.Mesh>(null!);
+  const dotRef = useRef<THREE.Mesh | null>(null);
   useFrame(({ clock }) => {
     if (dotRef.current) {
       const p = 1 + Math.sin(clock.elapsedTime * 2 + marker.lat) * 0.15;
